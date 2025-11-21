@@ -251,6 +251,64 @@ app.post('/api/send-notification', async (req, res) => {
     });
 });
 
+// Проверка валидности подписки
+app.post('/api/check-subscription', async (req, res) => {
+    const { subscription } = req.body;
+
+    if (!subscription) {
+        return res.json({ valid: false, error: 'No subscription provided' });
+    }
+
+    // Проверяем, есть ли эта подписка в нашем хранилище
+    const exists = subscriptions.some(sub => sub.endpoint === subscription.endpoint);
+
+    if (!exists) {
+        return res.json({ valid: false, error: 'Subscription not found on server' });
+    }
+
+    // Пробуем отправить тестовое уведомление
+    try {
+        const testPayload = JSON.stringify({
+            title: 'Проверка подписки',
+            message: 'Ваша подписка активна! ✅',
+            icon: '/pwa-192x192.png',
+            timestamp: new Date().toISOString()
+        });
+
+        await webPush.sendNotification(subscription, testPayload);
+        res.json({ valid: true, message: 'Subscription is valid' });
+
+    } catch (error) {
+        console.error('Subscription validation failed:', error);
+
+        // Удаляем невалидную подписку
+        subscriptions = subscriptions.filter(sub => sub.endpoint !== subscription.endpoint);
+
+        res.json({
+            valid: false,
+            error: error.message,
+            statusCode: error.statusCode
+        });
+    }
+});
+
+// Детальная отладка подписки
+app.post('/api/debug-subscription', (req, res) => {
+    const { subscription } = req.body;
+
+    res.json({
+        existsOnServer: subscriptions.some(sub => sub.endpoint === subscription.endpoint),
+        totalSubscriptions: subscriptions.length,
+        subscriptionDetails: {
+            endpoint: subscription.endpoint,
+            keys: subscription.keys ? {
+                auth: `...${subscription.keys.auth.slice(-10)}`,
+                p256dh: `...${subscription.keys.p256dh.slice(-10)}`
+            } : 'No keys'
+        }
+    });
+});
+
 // Обработка ошибок CORS
 app.use((err, req, res, next) => {
     if (err.message === 'Not allowed by CORS') {
