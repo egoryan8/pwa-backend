@@ -20,7 +20,9 @@ const corsOptions = {
             'http://localhost:5173',
             'http://127.0.0.1:5173',
             'https://localhost:3000',
-            'https://127.0.0.1:3000'
+            'https://127.0.0.1:3000',
+            'https://dev.demo.fdoc.ru',
+            'https://demo.fdoc.ru'
         ];
 
         if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('localhost') || origin.includes('127.0.0.1')) {
