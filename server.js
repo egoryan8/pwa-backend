@@ -315,7 +315,7 @@ app.use((err, req, res, next) => {
         return res.status(403).json({
             error: 'CORS Error',
             message: 'Доступ с этого origin запрещен',
-            allowedOrigins: ['localhost', '127.0.0.1']
+            allowedOrigins: ['localhost', '127.0.0.1', 'https://dev.demo.fdoc.ru', 'https://demo.fdoc.ru']
         });
     }
     next(err);
